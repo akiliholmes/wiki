@@ -8,8 +8,8 @@
     <h1>All Pages</h1>
 
     <ul>
-        {% for entry in entries %}
-            <li>{{ entry }}</li>
+        {% for title in entries %}
+            <li><a href="{% url 'encyclopedia:entry' title %}">{{ title }}</a></li>
         {% endfor %}
     </ul>
 
