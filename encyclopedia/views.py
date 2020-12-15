@@ -27,18 +27,16 @@ def entry(request, title):
         })
 
 def search(request):
-            d = request.GET.get('q','')
-            if util.get_entry(d) is not None:
-                return render(request, "encyclopedia/search.html", {
-                    "results": d
-                })
+            data = request.GET.get('q','')
+            if util.get_entry(data) is not None:
+                return HttpResponseRedirect(reverse("encyclopedia:entry", args=[data]))
             else:
                 partialEntries = []
                 for entry in util.list_entries():
-                    for d in entry:
+                    if data.upper() in entry.upper():
                         partialEntries.append(entry)
-                        return render(request, "encyclopedia/search.html",{
-                            "results": partialEntries
+                return render(request, "encyclopedia/search.html",{
+                    "results": partialEntries
                 })
 
 def new(request):

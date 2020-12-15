@@ -8,11 +8,7 @@ Search
    <h1> Search result: </h1>
    <ul>
        {% for matches in results %}
-           <a href="{% url 'wiki:{{matches}}'}"<li>{{ matches }}</li>
+           <li><a href="{% url 'encyclopedia:entry' matches %}">{{ matches }}</a></li>
        {% endfor %}
     </ul>
-    {% block error %}
-    {{noMatch}}
-    {% endblock %}
-
 {% endblock %}
