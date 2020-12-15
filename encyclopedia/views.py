@@ -1,4 +1,4 @@
-import re, markdown2
+import re, markdown2, secrets
 
 from django.shortcuts import render
 from django.http import Http404, HttpResponse, HttpResponseNotFound, HttpResponseRedirect
@@ -85,3 +85,11 @@ def edit(request, title):
             "title": title,
             "form": form
         })
+
+def random(request):
+    entries = util.list_entries()
+    randomEntry = secrets.choice(entries)
+    return render(request, "encyclopedia/entry.html",{
+        "title": randomEntry,
+        "content": markdown2.markdown(util.get_entry(randomEntry))
+    })
