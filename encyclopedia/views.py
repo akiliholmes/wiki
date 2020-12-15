@@ -1,12 +1,15 @@
 import re, markdown2
 
 from django.shortcuts import render
-from django.http import Http404, HttpResponse, HttpResponseNotFound
+from django.http import Http404, HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.urls import reverse
 from django import forms
 
 from . import util
 
+class NewEntryForm(forms.Form):
+    title = forms.CharField(max_length=100)
+    content = forms.CharField(widget=forms.Textarea)
 
 def index(request):
     return render(request, "encyclopedia/index.html", {
@@ -19,14 +22,66 @@ def entry(request, title):
         raise Http404("Entry does not exist")
     else:
         return render(request, "encyclopedia/entry.html",{
+            "title": title,
             "content": markdown2.markdown(f)
         })
 
-def search(request, q):
-    e = util.list_entries()
-    c = re.compile(e, re.IGNORECASE)
-    results = re.finditer(q)
-    if results is not None:
-        return render(request, "encyclopedia/search.html", {
-            "results": results
+def search(request):
+            d = request.GET.get('q','')
+            if util.get_entry(d) is not None:
+                return render(request, "encyclopedia/search.html", {
+                    "results": d
+                })
+            else:
+                partialEntries = []
+                for entry in util.list_entries():
+                    for d in entry:
+                        partialEntries.append(entry)
+                        return render(request, "encyclopedia/search.html",{
+                            "results": partialEntries
+                })
+
+def new(request):
+    if request.method == "POST":
+        form = NewEntryForm(request.POST)
+        if form.is_valid():
+            title = form.cleaned_data["title"]
+            content = form.cleaned_data["content"]
+            f = util.get_entry(title)
+            if f == None:
+                create = util.save_entry(title, content)
+                return HttpResponseRedirect(reverse("encyclopedia:entry", args=[title]))
+            else:
+                return render(request, "encyclopedia/new.html", {
+                    "error": "This entry already exist",
+                    "form": form
+                    })
+        else:
+            return render(request, "encyclopedia/new.html", {
+                "form": form
+            })
+    else:
+        return render(request, "encyclopedia/new.html", {
+            "form": NewEntryForm()
+        })
+
+def edit(request, title):
+    if request.method == "POST":
+        form = NewEntryForm(request.POST)
+        if form.is_valid():
+            title = form.cleaned_data["title"]
+            content = form.cleaned_data["content"]
+            create = util.save_entry(title, content)
+            return HttpResponseRedirect(reverse("encyclopedia:entry", args=[title]))
+        else:
+            return render(request, "encyclopedia/edit.html", {
+                "form": form
+            })
+    else:
+        f = util.get_entry(title)
+        data = {'title': f'{title}', 'content': f'{f}'}
+        form = NewEntryForm(initial=data)
+        return render(request, "encyclopedia/edit.html",{
+            "title": title,
+            "form": form
         })

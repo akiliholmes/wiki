@@ -11,4 +11,8 @@ Search
            <a href="{% url 'wiki:{{matches}}'}"<li>{{ matches }}</li>
        {% endfor %}
     </ul>
+    {% block error %}
+    {{noMatch}}
+    {% endblock %}
+
 {% endblock %}
